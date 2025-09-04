@@ -21,7 +21,7 @@ const env = dotenv.config();
 // 2 ➜ expandir interpolaciones
 dotenvExpand.expand(env);
 
-
+console.log(process.env.MONGODB_URI)
 /* ──────────────────────────────────────────────────────────────── */
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,10 +33,10 @@ const PORT = process.env.PORT || 3000;
 const corsOptions = {
   origin: process.env.FRONTEND_URL,   //  URL del frontend
   // credentials: true,  //  Permite enviar cookies
-  // methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   // allowedHeaders: ['Content-Type', 'Authorization'],
   // exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  // credentials: true,
+  credentials: true,
   // maxAge: 86400 // 24 horas en segundos
 }
 
@@ -98,6 +98,6 @@ connectDB();
 // Iniciar el servidor
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor ejecutándose en el puerto: ${PORT}`);
-  console.log('Desde render - ');
+  // console.log('Desde render - ');
   console.log(`Desde VSC - http://localhost:${PORT}`);
 });

@@ -1,9 +1,15 @@
 import mongoose from "mongoose";
 
 export async function connectDB() {
+    const uri = process.env.MONGODB_URI; // 🔹 verificar que no sea undefined
+    if (!uri) throw new Error("MONGODB_URI no está definido en las variables de entorno");
+
     try {
-        await mongoose.connect(process.env.DB_URI);
-        console.log('✅ Conexión exitosa a MondgoDB');
+        const conn = await mongoose.connect(uri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log(`✅ Conexión exitosa a MondgoDB: ${conn.connection.host}`);
     } catch (error) {
         console.error('❌ Error al conectar a MongoDB', error);
         process.exit(1);
