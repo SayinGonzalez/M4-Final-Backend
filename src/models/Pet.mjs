@@ -27,15 +27,33 @@ const petSchema = new mongoose.Schema({
     enum: ["cachorro", "adulto", "senior"],
     required: [true, "La edad es obligatoria"]
   },
-  description: { type: String, trim: true, default: null },
-  medicalStatus: { type: String, default: "Desconocido" },
-  behaviorTraits: { type: String, default: null },
-  preferences: { type: String, default: null },
+  description: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  medicalStatus: {
+    type: String,
+    default: "Desconocido"
+  },
+  behaviorTraits: {
+    type: String,
+    default: null
+  },
+  preferences: {
+    type: String,
+    default: null
+  },
   category: {
     type: String,
     enum: ["adoption", "match"],
     required: [true, "La categoría es obligatoria"]
   },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
 });
 
 

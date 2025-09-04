@@ -4,12 +4,14 @@ import {
   findPetByIdService,
   addPetService,
   editPetService,
-  deletePetService
+  deletePetService,
+  getUserPetsService,
+  getPetsByQueryService
 } from '../services/petService.mjs'
 import { AppError } from '../utils/AppError.mjs';
 
 
-export async function listPetsController(req, res) {
+export async function listPetsController(req, res, next) {
 
   try {
     console.log('Ingreso listPetsController');
@@ -28,7 +30,35 @@ export async function listPetsController(req, res) {
   }
 }
 
-export async function findPetsByCategoryController(req, res) {
+export async function findPetByIdController(req, res, next) {
+
+  try {
+    console.log('Ingreso findPetByIdController');
+
+    const petId = req.params.id;
+    // console.log(`Controller ID - ${id}`);
+    const petFound = await findPetByIdService(petId);
+
+    if (!petFound) {
+      throw new AppError("Mascota no encontrada", 404);
+    }
+
+    // console.log('==============================================');
+    // console.log('Retorno a Controller desde Service');
+    // console.log(`Countroller Pet -`, petFound);
+
+    return res.status(200).json({
+      success: true,
+      message: "Mascota encontrada",
+      data: petFound
+    });
+
+  } catch (err) {
+    next(err); // pasa el error al middleware global
+  }
+}
+
+export async function findPetsByCategoryController(req, res, next) {
 
   try {
     console.log('Ingreso findPetsByCategoryController');
@@ -52,42 +82,65 @@ export async function findPetsByCategoryController(req, res) {
 
 }
 
-export async function findPetByIdController(req, res) {
-
+export async function getUserPetsController(req, res, next) {
   try {
-    console.log('Ingreso findPetByIdController');
+    console.log('getUserPetsController req.user', req.user)
+    const userId = req.user.id; // viene del middleware de auth
+    const { page = 1, limit = 10 } = req.query;
+    console.log('userId getUserPetsController:', userId)
 
-    const { id } = req.params;
-    // console.log(`Controller ID - ${id}`);
-    const petFound = await findPetByIdService(id);
-
-    if (!petFound) {
-      throw new AppError("Mascota no encontrada", 404);
-    }
-
-    // console.log('==============================================');
-    // console.log('Retorno a Controller desde Service');
-    // console.log(`Countroller Pet -`, petFound);
-
-    return res.status(200).json({
-      success: true,
-      message: "Mascota encontrada",
-      data: petFound
+    const result = await getUserPetsService(userId, {
+      page: parseInt(page),
+      limit: parseInt(limit)
     });
 
+    res.status(200).json({
+      success: true,
+      data: result.pets,
+      pagination: result.pagination,
+    });
   } catch (err) {
-    next(err); // pasa el error al middleware global
+    next(err);
   }
 }
 
-export async function addPetController(req, res) {
+export async function getPetsByQueryController(req, res, next) {
+  try {
+    console.log("Ingreso getPetsByQueryController");
 
+    // 🔹 Filtros desde query string
+    const filters = req.query;
+
+    // 🔹 Parámetros de paginación
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      sort: req.query.sort ? JSON.parse(req.query.sort) : {}
+    };
+
+    const { pets, pagination } = await getPetsByQueryService(filters, options);
+
+    res.json({
+      success: true,
+      data: pets,
+      pagination,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function addPetController(req, res, next) {
   try {
     console.log('Ingreso addPetController');
 
     const petData = req.body;
-    console.log('Controller - Datos Recibidos:', petData);
-    const petCreated = await addPetService(petData);
+    const ownerId = req.user._id; // viene del middleware de autenticación
+
+    console.log('Controller - Datos Recibidos:', petData, 'OwnerId:', ownerId);
+
+    const petCreated = await addPetService(petData, ownerId);
+
     console.log('Controller - petCreated:', petCreated);
 
     res.status(201).json({
@@ -97,19 +150,18 @@ export async function addPetController(req, res) {
     });
 
   } catch (err) {
-    next(err); // pasa el error al middleware global
+    next(err);
   }
-
 }
 
-export async function editPetController(req, res) {
+export async function editPetController(req, res, next) {
 
   try {
     console.log('Ingreso editPetController');
 
-    const { id } = req.params;
+    const petId = req.params.id;
     const petData = req.body;
-    const petModified = await editPetService(id, petData);
+    const petModified = await editPetService(petId, petData);
 
     if (!petModified) {
       throw new AppError("No se pudo editar la mascota (no encontrada)", 404);
@@ -131,8 +183,8 @@ export async function deletePetController(req, res, next) {
   try {
     console.log('Ingreso deletePetController');
 
-    const { id } = req.params;
-    const petDeleted = await deletePetService(id);
+    const petId = req.params.id;
+    const petDeleted = await deletePetService(petId);
     console.log('Controller - Pet Deleted:', petDeleted);
 
     if (!petDeleted) {
@@ -149,37 +201,3 @@ export async function deletePetController(req, res, next) {
     next(err); // pasa el error al middleware global
   }
 }
-
-
-
-/*
-  En errorHandler.mjs
-  export function errorHandler(err, req, res, next) {
-    console.error("🔥 Error capturado:", err);
-
-    // Si ya se envió respuesta, salimos
-    if (res.headersSent) {
-      return next(err);
-    }
-
-    // Determinar el código de estado
-    const status = err.statusCode || 500;
-
-    res.status(status).json({
-      success: false,
-      message: err.message || "Error interno del servidor",
-      error: process.env.NODE_ENV === "development" ? err.stack : undefined
-    });
-  }
-
-
-  En App.mjs
-  // Middleware global de errores (al final siempre)
-  app.use(errorHandler);
-
-
-  Ejemplo de uso en controller
-  } catch (err) {
-    next(err); // delega al errorHandler
-  }
-*/

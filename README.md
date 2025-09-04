@@ -2,22 +2,23 @@
 <!-- Agregar -->
 
 ## 📁 Estructura del Proyecto
-/src
- ├── /components
- │   └── /pages
- │   │   ├── ItemList.jsx
- │   │   ├── ItemDetail.jsx
- │   │   ├── ItemCreate.jsx
- │   │   ├── ItemEdit.jsx
- │   │   └── NotFound.jsx
- │   └── ItemCard.jsx
- ├── /context
- │   └── ItemContext.jsx
- ├── /Router
- │   └── AppRouter.jsx
- ├── App.jsx
- └── main.jsx
-
+```
+  /src
+  ├── /components
+  │   └── /pages
+  │   │   ├── ItemList.jsx
+  │   │   ├── ItemDetail.jsx
+  │   │   ├── ItemCreate.jsx
+  │   │   ├── ItemEdit.jsx
+  │   │   └── NotFound.jsx
+  │   └── ItemCard.jsx
+  ├── /context
+  │   └── ItemContext.jsx
+  ├── /Router
+  │   └── AppRouter.jsx
+  ├── App.jsx
+  └── main.jsx
+```
 ## 🧩 Funcionalidades del Proyecto
 <!-- Agregar -->
 
@@ -39,6 +40,6 @@ Elegimos Axios en lugar de Fetch porque:
 - 🔹 Tiene soporte con Node.js a diferencia de Fetch.
 - 🔹 Soporta cancelación de peticiones, timeouts y configuración global.
 
-###  By: Sayin Gonzalez
+###  By: Francisco Fabián - Sayin Gonzalez
 
 ➜
