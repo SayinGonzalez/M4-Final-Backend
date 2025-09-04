@@ -1,29 +1,24 @@
 class IRepository {
 
-    getPets() {
-        throw new Error('Método "getPets()" no implementado');
-    }
-    
-    getPetsByCategory() {
-        throw new Error('Método "getPetsCategory()" no implementado');
-    }
-    
-    getPetById() {
-        throw new Error('Método "getPet()" no implementado');
+    async getAll() {
+        throw new Error('Método "findAll()" no implementado');
     }
 
-    createPet() {
-        throw new Error('Método "addPet()" no implementado');
+    async getById(id) {
+        throw new Error('Método "findById()" no implementado');
     }
 
-    updatePet() {
-        throw new Error('Método "editPet()" no implementado');
+    async create(data) {
+        throw new Error('Método "create()" no implementado');
     }
 
-    deletePet() {
-        throw new Error('Método "deletePet()" no implementado');
+    async update(id, data) {
+        throw new Error('Método "update()" no implementado');
     }
 
+    async delete(id) {
+        throw new Error('Método "delete()" no implementado');
+    }
 }
 
 export default IRepository;

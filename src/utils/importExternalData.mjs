@@ -1,73 +1,65 @@
-import axios from 'axios';
-import mongoose from 'mongoose';
-import Country from "../models/Country.mjs";
-import { connectDB } from '../config/dbConfig.mjs';
-import fs from 'fs';
+import mongoose from "mongoose";
+import axios from "axios";
+import Breed from "../models/Breed.mjs";
+import { connectDB } from "../config/dbConfig.mjs";
+import dotenv from "dotenv";
+import dotenvExpand from "dotenv-expand";
 
+const env = dotenv.config();
+dotenvExpand.expand(env);
 
-try {
-    // Conectar a la base
-    await connectDB();
-    console.log('✅ Conectado a la base de datos');
+// 🔹 Consultar y transformar razas
+async function fetchAndTransformBreeds() {
+  const { data } = await axios.get("https://dog.ceo/api/breeds/list/all");
 
-    // Consumir API
-    const { data } = await axios.get('https://restcountries.com/v3.1/all');
+  if (data.status !== "success") {
+    throw new Error("Error al consultar la API de razas");
+  }
 
-    const countriesFiltered = data
-        // Filtrar los paises que tengan como mínimo el español
-        .filter(country => country.languages?.spa)
-        .map(pais => {
-            // Desestructuración con rest (...resto) para eliminar los campos especificados
-            const {
-                translations,
-                tld,
-                cca2,
-                ccn3,
-                cca3,
-                cioc,
-                idd,
-                altSpellings,
-                car,
-                coatOfArms,
-                postalCode,
-                demonyms,
-                ...resto
-            } = pais;
+  const breedsData = data.message;
 
-            // Agregar campo "creador"
-            return {
-                ...resto,
-                creador: "Sayii"
-            };
-        });
+  // raza principal sola + raza con subrazas
+  const breeds = Object.entries(breedsData).flatMap(([breed, subBreeds]) => {
+    if (subBreeds.length === 0) {
+      return [breed];
+    }
+    return [breed, ...subBreeds.map(sub => `${breed} ${sub}`)];
+  });
 
-    console.log(countriesFiltered);
-
-    /* fs.writeFileSync('countries_filtered.json', JSON.stringify(countriesFiltered, null, 2));
-    console.log('Archivo guardado como countries_filtered.json'); */
-
-    /* // Buscar duplicados
-    const existentes = await YourModel.find({
-        API: { $in: filtered.map(e => e.API) }
-    }).lean();
-
-    const yaExisten = new Set(existentes.map(e => e.API));
-    const nuevos = filtered.filter(e => !yaExisten.has(e.API));
-
-    if (nuevos.length === 0) {
-        console.log('ℹ️ No hay nuevos datos para importar.');
-    } else { }*/
-     
-    if (!Array.isArray(data)) throw new Error('La API no devolvió un array válido');
-
-    await Country.insertMany(countriesFiltered);
-    console.log(`✅ Se importaron ${countriesFiltered.length} nuevos registros.`);
-
-    await mongoose.disconnect();
-    console.log('✅ Desconectado de la base de datos');
-
-} catch (error) {
-    console.error('❌ Error:', error.message);
-    process.exit(1);
+  console.log(breeds)
+  return breeds;
 }
 
+// 🔹 Guardar razas en MongoDB
+async function saveBreedsToDB() {
+  try {
+    await connectDB();
+    console.log("✅ Conectado a MongoDB");
+
+    const breeds = await fetchAndTransformBreeds();
+
+    // Adaptar al esquema
+    const docs = breeds.map(breedName => ({
+      animalType: "dog",   // 👈 siempre "dog"
+      breed: breedName
+    }));
+
+    // 🔥 Limpiar colección antes de insertar
+    await Breed.deleteMany({});
+    console.log("🗑️ Colección de breeds limpiada");
+
+    // Insertar nuevas razas
+    await Breed.insertMany(docs);
+    console.log("✅ Razas guardadas en la base de datos");
+
+  } catch (err) {
+    console.error("❌ Error en saveBreedsToDB:", err.message);
+  } finally {
+    await mongoose.disconnect();
+    console.log("🔌 Desconectado de MongoDB");
+  }
+}
+
+// 🚀 Ejecutar
+saveBreedsToDB();
+// fetchAndTransformBreeds();
