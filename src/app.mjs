@@ -30,6 +30,7 @@ const PORT = process.env.PORT || 3000;
 /* ───────────────────────────  CORS  ─────────────────────────── */
 //  Configuración de CORS
 //  Intercambio de recursos de origen cruzado
+// const allowedOrigins = process.env.FRONTEND_URL.split(',');
 const corsOptions = {
   origin: process.env.FRONTEND_URL,   //  URL del frontend
   // credentials: true,  //  Permite enviar cookies

@@ -17,15 +17,10 @@ import { authenticateToken, hasPermission } from '../middlewares/authMiddleware.
 const router = express.Router();
 
 //  Rutas para todo público
-router.get('/category/:category', findPetsByCategoryController);
+router.get('/', listPetsController );
 router.get('/id/:id', idValidation, findPetByIdController);
+router.get('/category/:category', findPetsByCategoryController);
 // --------------------------
-
-router.get('/',
-  authenticateToken,
-  hasPermission(["read"], ["pets"]),
-  listPetsController
-);
 
 router.get('/my-pets',
   authenticateToken,
